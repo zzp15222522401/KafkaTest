@@ -13,45 +13,18 @@ import org.apache.logging.log4j.Logger;
 import org.davidcampos.kafka.commons.Commons;
 
 import java.util.Properties;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 public class KafkaProducerExample {
     private static final Logger logger = LogManager.getLogger(KafkaProducerExample.class);
 
-    public static void main(final String... args) {
-        // Create topic
-        createTopic();
-
-        String[] words = new String[]{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"};
-        Random ran = new Random(System.currentTimeMillis());
-
-        final Producer<String, String> producer = createProducer();
-        int EXAMPLE_PRODUCER_INTERVAL = System.getenv("EXAMPLE_PRODUCER_INTERVAL") != null ?
-                Integer.parseInt(System.getenv("EXAMPLE_PRODUCER_INTERVAL")) : 100;
-
-        try {
-            while (true) {
-                String word = words[ran.nextInt(words.length)];
-                String uuid = UUID.randomUUID().toString();
-
-                ProducerRecord<String, String> record = new ProducerRecord<>(Commons.EXAMPLE_KAFKA_TOPIC, uuid, word);
-                RecordMetadata metadata = producer.send(record).get();
-
-                logger.info("Sent ({}, {}) to topic {} @ {}.", uuid, word, Commons.EXAMPLE_KAFKA_TOPIC, metadata.timestamp());
-
-                Thread.sleep(EXAMPLE_PRODUCER_INTERVAL);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("An error occurred.", e);
-        } finally {
-            producer.flush();
-            producer.close();
-        }
+    public static void sendMessage(String topic,String data){
+        Producer<String, String> producer = createProducer();
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(topic, data);
+        producer.send(producerRecord);
     }
 
     private static Producer<String, String> createProducer() {
+//        createTopic();
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Commons.EXAMPLE_KAFKA_SERVER);
         props.put(ProducerConfig.CLIENT_ID_CONFIG, "KafkaProducerExample");
